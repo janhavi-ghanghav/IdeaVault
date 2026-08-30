@@ -8,7 +8,7 @@ import { ErrorBanner } from './ErrorBanner'
 interface Props {
   idea: Idea
   onClose: () => void
-  onDelete: (id: string) => void
+  onDelete: (id: string) => void | Promise<void>
   onStatusChange: (id: string, status: string) => void
 }
 
@@ -161,8 +161,7 @@ export function IdeaFocusOverlay({
           showDeleteConfirm && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
               <div
-                className="w-full max-w-smrounded-[var(--radius-xl)]border border-[var(--border)]bg-[var(--surface)]p-6shadow-xl
-                "
+                className="w-full max-w-sm rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-xl"
               >
                 <h3 className="text-lg font-semibold text-[var(--text-1)]">
                   Delete Idea?
@@ -171,6 +170,12 @@ export function IdeaFocusOverlay({
                 <p className="mt-2 text-sm text-[var(--text-3)]">
                   This action cannot be undone.
                 </p>
+
+                {error && (
+                  <div style={{ marginTop: 12 }}>
+                    <ErrorBanner error={error} onDismiss={clearError} />
+                  </div>
+                )}
 
                 <div className="mt-6 flex justify-end gap-2">
                   <button
@@ -181,19 +186,19 @@ export function IdeaFocusOverlay({
                   </button>
 
                   <button
-                    onClick={() => {
-                      onDelete(idea.id)
-                      onClose()
+                    onClick={async () => {
+                      clearError()
+                      try {
+                        await onDelete(idea.id)
+                        onClose()
+                      } catch (err) {
+                        handleError(err)
+                      }
                     }}
                     className=" rounded-[var(--radius-md)] bg-red-500 px-4 py-2 text-sm font-medium text-white hover:opacity-90
                     ">
                     Delete
                   </button>
-                  {error && (
-                    <div style={{ marginTop: 8 }}>
-                      <ErrorBanner error={error} onDismiss={clearError} />
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

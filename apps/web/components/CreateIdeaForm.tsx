@@ -159,7 +159,7 @@ export function CreateIdeaForm({ onCreated, onIdeaCreated, onCancel }: Props) {
                 borderRadius: 'var(--radius-sm)',
                 border: 'none',
                 background: loading ? 'var(--accent-light)' : 'var(--accent)',
-                color: loading ? 'var(--accent-text)' : '#9e1212',
+                color: loading ? 'var(--accent-text)' : '#fff',
                 fontSize: 13,
                 fontWeight: 500,
                 cursor: loading ? 'default' : 'pointer',
