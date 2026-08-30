@@ -50,10 +50,9 @@ const worker = new Worker<EnrichmentJobData>(
         )
 
         if (!aiResponse.ok) {
-            const error = aiResponse.text
-            throw new Error(`AI service failed ${error}`)
+            const error = await aiResponse.text()
+            throw new Error(`AI service failed: ${aiResponse.status} — ${error}`)
         }
-
         const rawEnrichment = await aiResponse.json() as Enrichment
         const enrichment = EnrichmentSchema.parse(rawEnrichment)
 
