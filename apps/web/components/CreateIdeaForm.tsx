@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { DOMAINS, Domain, DOMAIN_COLORS } from '@idea-vault/types'
+import { DOMAINS, Domain } from '@idea-vault/types'
+import { getDomain } from '@/lib/domainConfig'
 import { useApi } from '@/hooks/useApi'
 import { useApiError } from '@/hooks/useApiError'
 import { ErrorBanner } from '@/components/ErrorBanner'
@@ -20,7 +21,7 @@ export function CreateIdeaForm({ onCreated, onIdeaCreated, onCancel }: Props) {
 
   useEffect(() => { titleRef.current?.focus() }, [])
 
-  const domainColor = DOMAIN_COLORS[form.domain] ?? DOMAIN_COLORS.DEV
+  const domainColor = getDomain(form.domain)
 
   const handleSubmit = async () => {
     if (!form.title.trim() || !form.rawDump.trim()) return
@@ -61,7 +62,7 @@ export function CreateIdeaForm({ onCreated, onIdeaCreated, onCancel }: Props) {
         {/* Domain selector — pill style */}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
           {DOMAINS.map(d => {
-            const c = DOMAIN_COLORS[d] ?? DOMAIN_COLORS.DEV
+            const c = getDomain(d)
             const active = form.domain === d
             return (
               <button

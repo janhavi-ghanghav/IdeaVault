@@ -1,36 +1,11 @@
 'use client'
 import { Idea } from '@idea-vault/types'
+import { getDomain } from '@/lib/domainConfig'
 import { useState } from 'react'
 interface Props {
   ideas: Idea[]
   onCardClick: (idea: Idea) => void
   onDelete: (id: string) => void
-}
-
-const DOMAIN_ACCENT: Record<string, string> = {
-  DEV:      '#4F46E5',
-  DESIGN:   '#059669',
-  BUSINESS: '#D97706',
-  PERSONAL: '#DB2777',
-  RESEARCH: '#B45309',
-  CREATIVE: '#7C3AED',
-  HEALTH:   '#0F766E',
-  TRAVEL:   '#0369A1',
-  LEARNING: '#C2410C',
-  LIFE:     '#6D28D9',
-}
-
-const DOMAIN_BG: Record<string, string> = {
-  DEV:      'rgba(79,70,229,0.07)',
-  DESIGN:   'rgba(5,150,105,0.07)',
-  BUSINESS: 'rgba(217,119,6,0.07)',
-  PERSONAL: 'rgba(219,39,119,0.07)',
-  RESEARCH: 'rgba(180,83,9,0.07)',
-  CREATIVE: 'rgba(124,58,237,0.07)',
-  HEALTH:   'rgba(15,118,110,0.07)',
-  TRAVEL:   'rgba(3,105,161,0.07)',
-  LEARNING: 'rgba(194,65,12,0.07)',
-  LIFE:     'rgba(109,40,217,0.07)',
 }
 
 export function RecentCaptures({ ideas, onCardClick, onDelete }: Props) {
@@ -117,8 +92,7 @@ function RecentCard({ idea, onClick, onDelete }: {
   onDelete: (id: string) => void
 }) {
   const enriched = !!idea.enrichment
-  const accent = DOMAIN_ACCENT[idea.domain] ?? '#868E96'
-  const domainBg = DOMAIN_BG[idea.domain] ?? 'rgba(0,0,0,0.04)'
+  const { accent, bg: domainBg } = getDomain(idea.domain)
 
   const date = new Date(idea.createdAt).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric',
