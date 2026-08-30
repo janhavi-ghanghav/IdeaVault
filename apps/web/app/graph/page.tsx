@@ -6,18 +6,10 @@ import { UserButton } from '@clerk/nextjs'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { IdeaFocusOverlay } from '@/components/IdeaFocusOverlay'
-const DOMAIN_CONFIG: Record<string, { accent: string; text: string; bg: string }> = {
-  DEV:      { accent: '#5b5bd6', text: '#3d3d9e', bg: '#ededfc' },
-  DESIGN:   { accent: '#1d9e75', text: '#0f6e56', bg: '#eaf8f3' },
-  BUSINESS: { accent: '#d85a30', text: '#9b3a25', bg: '#fef0ed' },
-  PERSONAL: { accent: '#d4537e', text: '#993556', bg: '#fbeaf0' },
-  RESEARCH: { accent: '#ba7517', text: '#854f0b', bg: '#faeeda' },
-  CREATIVE: { accent: '#9333ea', text: '#6b21a8', bg: '#f3e8ff' },
-  HEALTH:   { accent: '#0f9e6e', text: '#065f46', bg: '#d1fae5' },
-  TRAVEL:   { accent: '#0891b2', text: '#164e63', bg: '#e0f2fe' },
-  LEARNING: { accent: '#ea580c', text: '#7c2d12', bg: '#fff7ed' },
-  LIFE:     { accent: '#7c3aed', text: '#4c1d95', bg: '#ede9fe' },
-}
+import { DOMAINS } from '@idea-vault/types'
+
+interface DomainVisual { accent: string; text: string; bg: string }
+
 // ─── Nav ──────────────────────────────────────────────────────────────────────
 
 const NAV = [
@@ -51,6 +43,10 @@ export default function GraphPage() {
   const path     = usePathname()
   const svgRef   = useRef<SVGSVGElement>(null)
   const simRef   = useRef<d3.Simulation<GraphNode, GraphEdge> | null>(null)
+  // Resolved once per load from the shared --dom-*-accent/bg/text CSS vars
+  // (same source of truth as apps/web/lib/domainConfig.ts) so colors stay
+  // consistent with the rest of the app and respect light/dark theme.
+  const domainColorsRef = useRef<Record<string, DomainVisual>>({})
 
   const [loading, setLoading]           = useState(true)
   const [nodeCount, setNodeCount]       = useState(0)
@@ -94,6 +90,21 @@ const colorEm       = getCSSVar('--em')
 const colorSurface  = getCSSVar('--surface')
 const colorText3    = getCSSVar('--text-3')
 const colorBorderDot = getCSSVar('--border') || '#E9ECEF'
+
+    // Resolve domain colors from the same --dom-*-accent/bg/text CSS vars
+    // that apps/web/lib/domainConfig.ts uses, so the graph, kanban cards,
+    // and recent captures all render the same color for the same domain.
+    const domainColors: Record<string, DomainVisual> = {}
+    DOMAINS.forEach(d => {
+      const key = d.toLowerCase()
+      domainColors[d] = {
+        accent: getCSSVar(`--dom-${key}-accent`) || colorBorder2,
+        text:   getCSSVar(`--dom-${key}-text`)   || colorText3,
+        bg:     getCSSVar(`--dom-${key}-bg`)     || colorSurface,
+      }
+    })
+    domainColorsRef.current = domainColors
+
     svg.selectAll('*').remove()
       const defs = svg.append('defs')
     // Dot grid background
@@ -142,7 +153,7 @@ dotPattern.append('circle')
 
     // ── Defs (glow filters) ──
 
-    Object.entries(DOMAIN_CONFIG).forEach(([domain]) => {
+    DOMAINS.forEach((domain) => {
     const filter = defs.append('filter').attr('id', `glow-${domain}`)
     filter.append('feGaussianBlur').attr('stdDeviation', '3').attr('result', 'coloredBlur')
     const merge = filter.append('feMerge')
@@ -209,7 +220,7 @@ dotPattern.append('circle')
       .append('circle')
       .attr('r', (d: GraphNode) => nodeRadius(d) + 4)
       .attr('fill', 'none')
-      .attr('stroke', (d: GraphNode) => DOMAIN_CONFIG[d.domain]?.accent ?? colorBorder2)
+      .attr('stroke', (d: GraphNode) => domainColors[d.domain]?.accent ?? colorBorder2)
       .attr('stroke-width', 1)
       .attr('stroke-opacity', 0.35)
       .attr('filter', (d: GraphNode) => `url(#glow-${d.domain})`)
@@ -218,7 +229,7 @@ dotPattern.append('circle')
     nodeEl
       .append('circle')
       .attr('r', (d: GraphNode) => nodeRadius(d))
-      .attr('fill', (d: GraphNode) => DOMAIN_CONFIG[d.domain]?.accent ?? colorSurface)
+      .attr('fill', (d: GraphNode) => domainColors[d.domain]?.accent ?? colorSurface)
       .attr('fill-opacity', (d: GraphNode) => d.enrichment ? 1 : 0.5)
       .attr('stroke', colorSurface)
       .attr('stroke-width', 1.5)
@@ -481,7 +492,8 @@ border:     '0.5px solid var(--border)',
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {activeDomains.map(domain => {
-              const cfg = DOMAIN_CONFIG[domain] 
+              const cfg = domainColorsRef.current[domain]
+              if (!cfg) return null
               return (
                 <div key={domain} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                   <div style={{
