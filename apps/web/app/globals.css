@@ -5,6 +5,8 @@
   --bg:        #F8F9FA;
   --surface:   #FFFFFF;
   --surface-2: #F1F3F5;
+    --surface-card: var(--surface);
+
   --border:    #E9ECEF;
   --border-2:  #CED4DA;
 
@@ -92,6 +94,7 @@
   --bg:        #0C0C0F;
   --surface:   #141417;
   --surface-2: #1C1C21;
+  --surface-card: var(--surface);
   --border:    #27272D;
   --border-2:  #3A3A42;
 
